@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Cramberry 🩷</title>
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#f9a8d4" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="Cramberry" />
+  <link rel="apple-touch-icon" href="icon-192.png" />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;1,400&family=Nunito:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --pink-50:  #fdf2f8;
+      --pink-100: #fce7f3;
+      --pink-200: #fbcfe8;
+      --pink-300: #f9a8d4;
+      --pink-400: #f472b6;
+      --pink-500: #ec4899;
+      --pink-600: #db2777;
+      --pink-700: #be185d;
+      --rose-100: #ffe4e6;
+      --rose-400: #fb7185;
+      --white:    #ffffff;
+      --gray-300: #d1d5db;
+      --gray-400: #9ca3af;
+      --gray-500: #6b7280;
+      --gray-700: #374151;
+      --gray-800: #1f2937;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Nunito', sans-serif;
+      background: var(--pink-50);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* ── HEADER ── */
+    .app-header {
+      width: 100%;
+      background: linear-gradient(135deg, #f472b6 0%, #db2777 100%);
+      padding: 18px 24px 15px;
+      display: flex; align-items: center; justify-content: space-between;
+      box-shadow: 0 4px 24px rgba(219,39,119,0.28);
+      position: sticky; top: 0; z-index: 100;
+    }
+    .header-left .logo {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.55rem; color: white; letter-spacing: -0.5px;
+    }
+    .header-left .logo span { font-style: italic; }
+    .header-left .tagline {
+      font-size: 0.7rem; color: rgba(255,255,255,0.78);
+      font-weight: 400; letter-spacing: 0.4px; margin-top: 1px;
+    }
+    .header-right .home-btn {
+      background: rgba(255,255,255,0.2); border: none;
+      color: white; border-radius: 10px; padding: 7px 13px;
+      font-family: 'Nunito', sans-serif; font-size: 0.8rem;
+      font-weight: 600; cursor: pointer; transition: background 0.2s;
+      display: none;
+    }
+    .header-right .home-btn.show { display: block; }
+    .header-right .home-btn:hover { background: rgba(255,255,255,0.32); }
+
+    /* ── SCREENS ── */
+    .screen { display: none; width: 100%; max-width: 520px; padding: 22px 18px 40px; animation: fadeUp 0.32s ease; }
+    .screen.active { display: block; }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(14px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── CARD ── */
+    .card {
+      background: white; border-radius: 22px;
+      padding: 26px 22px;
+      box-shadow: 0 4px 28px rgba(236,72,153,0.09);
+      margin-bottom: 16px;
+    }
+    .card-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.3rem; color: var(--pink-700); margin-bottom: 4px;
+    }
+    .card-sub { font-size: 0.8rem; color: var(--gray-400); margin-bottom: 18px; }
+
+    /* ── INSTALL BANNER ── */
+    .install-banner {
+      display: none; width: 100%; max-width: 520px;
+      background: linear-gradient(135deg, var(--pink-500), var(--pink-700));
+      color: white; padding: 13px 18px; margin: 14px 0 0;
+      border-radius: 16px; align-items: center; gap: 12px;
+    }
+    .install-banner.show { display: flex; }
+    .install-banner p { font-size: 0.82rem; flex: 1; }
+    .install-banner button {
+      background: white; color: var(--pink-600);
+      border: none; border-radius: 9px; padding: 7px 13px;
+      font-weight: 700; font-size: 0.8rem; cursor: pointer;
+    }
+
+    /* ══════════════════════════════════
+       SCREEN 1 — HOME (Subject Browser)
+    ══════════════════════════════════ */
+    .welcome-strip {
+      background: linear-gradient(135deg, #fce7f3, #fbcfe8);
+      border-radius: 18px; padding: 22px 20px 18px;
+      margin-bottom: 16px; position: relative; overflow: hidden;
+    }
+    .welcome-strip::after {
+      content: '🍓'; position: absolute; right: 18px; top: 14px;
+      font-size: 2.8rem; opacity: 0.18;
+    }
+    .welcome-strip h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.4rem; color: var(--pink-700); margin-bottom: 4px;
+    }
+    .welcome-strip p { font-size: 0.82rem; color: var(--pink-600); }
+
+    /* Loading state */
+    .loading-state {
+      text-align: center; padding: 32px 16px;
+    }
+    .spinner {
+      width: 36px; height: 36px; border-radius: 50%;
+      border: 3px solid var(--pink-200);
+      border-top-color: var(--pink-500);
+      animation: spin 0.7s linear infinite;
+      margin: 0 auto 12px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-state p { font-size: 0.85rem; color: var(--gray-400); }
+
+    /* Error state */
+    .error-state {
+      text-align: center; padding: 24px 16px;
+      background: #fff1f2; border-radius: 14px;
+    }
+    .error-state .err-icon { font-size: 2rem; margin-bottom: 8px; }
+    .error-state p { font-size: 0.84rem; color: #be123c; line-height: 1.6; }
+    .retry-btn {
+      margin-top: 12px; padding: 9px 20px;
+      background: var(--rose-400); color: white; border: none;
+      border-radius: 10px; font-family: 'Nunito', sans-serif;
+      font-size: 0.84rem; font-weight: 700; cursor: pointer;
+    }
+
+    /* Subject list */
+    .section-label {
+      font-size: 0.7rem; font-weight: 700; color: var(--pink-400);
+      letter-spacing: 1.2px; text-transform: uppercase; margin-bottom: 10px;
+    }
+    .subject-list { display: flex; flex-direction: column; gap: 10px; }
+    .subject-item {
+      background: var(--pink-50); border: 2px solid var(--pink-100);
+      border-radius: 16px; padding: 16px 18px;
+      cursor: pointer; transition: all 0.18s;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .subject-item:hover { border-color: var(--pink-400); background: var(--pink-100); transform: translateX(3px); }
+    .subject-item .subj-name {
+      font-size: 0.95rem; font-weight: 700; color: var(--pink-700);
+    }
+    .subject-item .subj-count {
+      font-size: 0.75rem; color: var(--gray-400); margin-top: 2px;
+    }
+    .subject-item .subj-arrow { color: var(--pink-300); font-size: 1rem; }
+
+    /* File list */
+    .back-btn {
+      display: flex; align-items: center; gap: 6px;
+      background: none; border: none; color: var(--pink-500);
+      font-family: 'Nunito', sans-serif; font-size: 0.85rem;
+      font-weight: 700; cursor: pointer; margin-bottom: 14px; padding: 0;
+    }
+    .file-list { display: flex; flex-direction: column; gap: 10px; }
+    .file-item {
+      background: white; border: 2px solid var(--pink-200);
+      border-radius: 14px; padding: 14px 16px;
+      cursor: pointer; transition: all 0.18s;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .file-item:hover { border-color: var(--pink-500); background: var(--pink-50); }
+    .file-item .file-icon {
+      width: 38px; height: 38px; border-radius: 10px;
+      background: var(--pink-100); display: flex; align-items: center;
+      justify-content: center; font-size: 1.1rem; flex-shrink: 0;
+    }
+    .file-item .file-name { font-size: 0.9rem; font-weight: 600; color: var(--gray-700); }
+    .file-item .file-sub { font-size: 0.75rem; color: var(--gray-400); margin-top: 2px; }
+
+    /* ══════════════════════════════════
+       SCREEN 2 — SETTINGS
+    ══════════════════════════════════ */
+    .selected-file-strip {
+      background: var(--pink-100); border-radius: 14px;
+      padding: 13px 16px; display: flex; align-items: center;
+      gap: 10px; margin-bottom: 18px;
+    }
+    .selected-file-strip .sf-icon { font-size: 1.3rem; }
+    .selected-file-strip .sf-name { font-size: 0.88rem; font-weight: 700; color: var(--pink-700); flex: 1; }
+    .selected-file-strip .sf-count { font-size: 0.75rem; color: var(--pink-500); }
+
+    .setting-row {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 16px;
+    }
+    .setting-label { font-size: 0.88rem; color: var(--gray-700); font-weight: 600; }
+    .setting-sub { font-size: 0.74rem; color: var(--gray-400); margin-top: 2px; }
+
+    .num-input { display: flex; align-items: center; gap: 10px; }
+    .num-input button {
+      width: 34px; height: 34px; border-radius: 50%;
+      border: 2px solid var(--pink-300); background: white;
+      color: var(--pink-600); font-size: 1.1rem; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.15s;
+    }
+    .num-input button:hover { background: var(--pink-100); border-color: var(--pink-500); }
+    .num-input span { font-size: 1rem; font-weight: 700; color: var(--pink-700); min-width: 28px; text-align: center; }
+
+    .toggle { position: relative; width: 44px; height: 24px; }
+    .toggle input { opacity: 0; width: 0; height: 0; }
+    .toggle-slider {
+      position: absolute; inset: 0; background: var(--pink-200);
+      border-radius: 24px; cursor: pointer; transition: 0.2s;
+    }
+    .toggle-slider:before {
+      content: ''; position: absolute;
+      width: 18px; height: 18px; left: 3px; bottom: 3px;
+      background: white; border-radius: 50%; transition: 0.2s;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+    }
+    .toggle input:checked + .toggle-slider { background: var(--pink-500); }
+    .toggle input:checked + .toggle-slider:before { transform: translateX(20px); }
+
+    .divider { height: 1px; background: var(--pink-100); margin: 16px 0; }
+
+    /* ── BUTTONS ── */
+    .btn-primary {
+      width: 100%; padding: 15px;
+      background: linear-gradient(135deg, var(--pink-400), var(--pink-600));
+      color: white; border: none; border-radius: 14px;
+      font-family: 'Nunito', sans-serif; font-size: 1rem; font-weight: 700;
+      cursor: pointer; letter-spacing: 0.2px;
+      box-shadow: 0 4px 18px rgba(236,72,153,0.35);
+      transition: all 0.2s;
+    }
+    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 22px rgba(236,72,153,0.45); }
+    .btn-primary:active { transform: translateY(0); }
+    .btn-primary:disabled { opacity: 0.45; cursor: not-allowed; transform: none; box-shadow: none; }
+    .btn-secondary {
+      width: 100%; padding: 13px;
+      background: white; color: var(--pink-600);
+      border: 2px solid var(--pink-300); border-radius: 14px;
+      font-family: 'Nunito', sans-serif; font-size: 0.95rem; font-weight: 700;
+      cursor: pointer; transition: all 0.2s; margin-top: 10px;
+    }
+    .btn-secondary:hover { background: var(--pink-50); border-color: var(--pink-500); }
+
+    /* ══════════════════════════════════
+       SCREEN 3 — EXAM
+    ══════════════════════════════════ */
+    .progress-bar-wrap {
+      background: var(--pink-100); border-radius: 99px; height: 8px;
+      margin-bottom: 6px; overflow: hidden;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--pink-300), var(--pink-500));
+      border-radius: 99px; transition: width 0.4s ease;
+    }
+    .progress-label {
+      display: flex; justify-content: space-between;
+      font-size: 0.74rem; color: var(--gray-400); margin-bottom: 20px;
+    }
+    .question-num {
+      font-size: 0.72rem; color: var(--pink-400); font-weight: 700;
+      letter-spacing: 1.2px; text-transform: uppercase; margin-bottom: 10px;
+    }
+    .question-text {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.12rem; color: var(--gray-800);
+      line-height: 1.6; margin-bottom: 22px;
+    }
+
+    .options { display: flex; flex-direction: column; gap: 10px; }
+    .option-btn {
+      display: flex; align-items: center; gap: 14px;
+      padding: 13px 16px; border-radius: 14px;
+      border: 2px solid var(--pink-200); background: white;
+      cursor: pointer; text-align: left; transition: all 0.18s;
+      font-family: 'Nunito', sans-serif; font-size: 0.9rem; color: var(--gray-700);
+      font-weight: 500;
+    }
+    .option-btn:hover:not(:disabled) { border-color: var(--pink-400); background: var(--pink-50); }
+    .option-btn:disabled { cursor: default; }
+    .option-btn .opt-letter {
+      width: 30px; height: 30px; border-radius: 50%;
+      background: var(--pink-100); color: var(--pink-600);
+      font-weight: 700; font-size: 0.82rem;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; transition: all 0.18s;
+    }
+    .option-btn.correct { border-color: #22c55e; background: #f0fdf4; }
+    .option-btn.correct .opt-letter { background: #22c55e; color: white; }
+    .option-btn.wrong { border-color: var(--rose-400); background: #fff1f2; }
+    .option-btn.wrong .opt-letter { background: var(--rose-400); color: white; }
+
+    .result-badge {
+      display: flex; align-items: center; gap: 8px;
+      padding: 10px 14px; border-radius: 10px; margin-top: 14px;
+      font-size: 0.86rem; font-weight: 700;
+    }
+    .result-badge.correct-badge { background: #dcfce7; color: #16a34a; }
+    .result-badge.wrong-badge { background: #ffe4e6; color: #be123c; }
+
+    .explanation-box {
+      margin-top: 14px; padding: 15px 17px;
+      border-radius: 14px; border-left: 4px solid var(--pink-400);
+      background: var(--pink-50); animation: fadeUp 0.28s ease;
+    }
+    .explanation-box .exp-label {
+      font-size: 0.7rem; font-weight: 700; color: var(--pink-500);
+      letter-spacing: 1px; text-transform: uppercase; margin-bottom: 6px;
+    }
+    .explanation-box p { font-size: 0.86rem; color: var(--gray-700); line-height: 1.65; }
+
+    .next-btn {
+      width: 100%; margin-top: 16px; padding: 14px;
+      background: linear-gradient(135deg, var(--pink-400), var(--pink-600));
+      color: white; border: none; border-radius: 14px;
+      font-family: 'Nunito', sans-serif; font-size: 0.95rem; font-weight: 700;
+      cursor: pointer; transition: all 0.2s;
+      box-shadow: 0 4px 14px rgba(236,72,153,0.3);
+    }
+    .next-btn:hover { transform: translateY(-1px); }
+
+    /* ══════════════════════════════════
+       SCREEN 4 — RESULTS
+    ══════════════════════════════════ */
+    .score-circle-wrap { display: flex; justify-content: center; margin: 8px 0 22px; }
+    .score-circle {
+      width: 148px; height: 148px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      position: relative; box-shadow: 0 8px 32px rgba(236,72,153,0.22);
+    }
+    .score-circle-inner {
+      width: 116px; height: 116px; border-radius: 50%;
+      background: white; display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+    }
+    .score-number { font-family: 'Playfair Display', serif; font-size: 2.2rem; color: var(--pink-600); line-height: 1; }
+    .score-denom { font-size: 0.76rem; color: var(--gray-400); font-weight: 500; }
+
+    .score-stats { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 18px; }
+    .stat-item { text-align: center; padding: 13px 8px; background: var(--pink-50); border-radius: 14px; }
+    .stat-val { font-size: 1.3rem; font-weight: 700; }
+    .stat-label { font-size: 0.7rem; color: var(--gray-400); margin-top: 2px; }
+
+    .pass-badge {
+      text-align: center; padding: 12px; border-radius: 12px;
+      font-weight: 700; font-size: 0.98rem; margin-bottom: 18px;
+    }
+    .pass-badge.pass { background: #dcfce7; color: #16a34a; }
+    .pass-badge.fail { background: #ffe4e6; color: #be123c; }
+
+    /* ── CSV FORMAT ERROR ── */
+    .csv-error-box {
+      display: none;
+      background: #fff1f2; border: 2px solid var(--rose-400);
+      border-radius: 14px; padding: 14px 16px; margin-top: 14px;
+    }
+    .csv-error-box.show { display: block; }
+    .csv-error-box .err-title {
+      font-size: 0.8rem; font-weight: 700; color: #be123c;
+      letter-spacing: 0.5px; margin-bottom: 6px;
+    }
+    .csv-error-box p { font-size: 0.78rem; color: #be123c; line-height: 1.6; }
+    .csv-error-box code {
+      background: #ffe4e6; color: #9f1239;
+      padding: 1px 5px; border-radius: 4px; font-size: 0.75rem;
+    }
+  </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="app-header">
+  <div class="header-left">
+    <div class="logo">Cram<span>berry</span> 🍓</div>
+    <div class="tagline">your pocket mock exam companion</div>
+  </div>
+  <div class="header-right">
+    <button class="home-btn" id="homeBtn" onclick="goHome()">🏠 Home</button>
+  </div>
+</div>
+
+<!-- INSTALL BANNER -->
+<div class="install-banner" id="installBanner">
+  <p>📲 Install Cramberry on your home screen for offline use!</p>
+  <button onclick="installApp()">Install</button>
+</div>
+
+<!-- ══════════════════════════════════════════ -->
+<!-- SCREEN 1: HOME — Subject Browser          -->
+<!-- ══════════════════════════════════════════ -->
+<div class="screen active" id="screen-home">
+
+  <div class="welcome-strip">
+    <h2>Hello, studybuddy! 🩷</h2>
+    <p>Pick a subject and start your mock exam.</p>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Your Reviewers</div>
+    <div class="card-sub" id="repoSubLabel">Loading from your GitHub…</div>
+    <div id="browserContent">
+      <div class="loading-state">
+        <div class="spinner"></div>
+        <p>Fetching your reviewers…</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════ -->
+<!-- SCREEN 2: SETTINGS                        -->
+<!-- ══════════════════════════════════════════ -->
+<div class="screen" id="screen-settings">
+  <div class="card">
+    <div class="card-title">Ready to Review? 🩷</div>
+    <div class="card-sub">Configure your exam session below.</div>
+
+    <div class="selected-file-strip">
+      <span class="sf-icon">📄</span>
+      <span class="sf-name" id="sfName">—</span>
+      <span class="sf-count" id="sfCount">— questions</span>
+    </div>
+
+    <div class="setting-row">
+      <div>
+        <div class="setting-label">Number of Questions</div>
+        <div class="setting-sub" id="maxHint">Max: —</div>
+      </div>
+      <div class="num-input">
+        <button onclick="changeCount(-5)">−</button>
+        <span id="qCount">10</span>
+        <button onclick="changeCount(5)">+</button>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="setting-row">
+      <div>
+        <div class="setting-label">Shuffle Questions</div>
+        <div class="setting-sub">Randomize order each session</div>
+      </div>
+      <label class="toggle">
+        <input type="checkbox" id="shuffleToggle" checked />
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
+
+    <div class="divider"></div>
+    <button class="btn-primary" onclick="startExam()">Start Exam 🩷</button>
+    <button class="btn-secondary" onclick="goHome()">← Back to Subjects</button>
+
+    <!-- CSV FORMAT ERROR — only shown when file has wrong format -->
+    <div class="csv-error-box" id="csvErrorBox">
+      <div class="err-title">⚠️ Invalid CSV Format</div>
+      <p>Your CSV must have these exact columns:<br/>
+      <code>question</code>, <code>option_a</code>, <code>option_b</code>,
+      <code>option_c</code>, <code>option_d</code>, <code>correct_answer</code>, <code>explanation</code></p>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════ -->
+<!-- SCREEN 3: EXAM                            -->
+<!-- ══════════════════════════════════════════ -->
+<div class="screen" id="screen-exam">
+  <div class="card">
+    <div class="progress-bar-wrap">
+      <div class="progress-bar-fill" id="progressFill" style="width:0%"></div>
+    </div>
+    <div class="progress-label">
+      <span id="progressLabel">Question 1 of 10</span>
+      <span id="scoreLabel">Score: 0</span>
+    </div>
+
+    <div class="question-num" id="questionNum">QUESTION 1</div>
+    <div class="question-text" id="questionText">Loading…</div>
+
+    <div class="options" id="optionsContainer"></div>
+
+    <div id="feedbackArea" style="display:none">
+      <div class="result-badge" id="resultBadge"></div>
+      <div class="explanation-box">
+        <div class="exp-label">📖 Explanation</div>
+        <p id="explanationText"></p>
+      </div>
+      <button class="next-btn" id="nextBtn" onclick="nextQuestion()">Next Question →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════ -->
+<!-- SCREEN 4: RESULTS                         -->
+<!-- ══════════════════════════════════════════ -->
+<div class="screen" id="screen-result">
+  <div class="card">
+    <div class="card-title" style="text-align:center; margin-bottom:4px;">Exam Complete! 🎉</div>
+    <div class="card-sub" style="text-align:center;">Here's how you did</div>
+
+    <div class="score-circle-wrap">
+      <div class="score-circle" id="scoreCircle">
+        <div class="score-circle-inner">
+          <div class="score-number" id="scoreBig">0</div>
+          <div class="score-denom" id="scoreOf">of 0</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="pass-badge" id="passBadge"></div>
+
+    <div class="score-stats">
+      <div class="stat-item">
+        <div class="stat-val" id="statCorrect" style="color:#22c55e">0</div>
+        <div class="stat-label">Correct ✅</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-val" id="statWrong" style="color:#fb7185">0</div>
+        <div class="stat-label">Wrong ❌</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-val" id="statPct" style="color:var(--pink-500)">0%</div>
+        <div class="stat-label">Score</div>
+      </div>
+    </div>
+
+    <button class="btn-primary" onclick="retryExam()">🔁 Retry This Reviewer</button>
+    <button class="btn-secondary" onclick="goHome()">📚 Back to Subjects</button>
+  </div>
+</div>
+
+<script>
+  // ── CONFIG ──
+  const GITHUB_USER = 'cessamaeeee';
+  const GITHUB_REPO = 'cramberry';
+  const CSV_FOLDER  = 'csv';
+  const API_BASE    = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${CSV_FOLDER}`;
+  const RAW_BASE    = `https://raw.githubusercontent.com/${GITHUB_USER}/${GITHUB_REPO}/main/${CSV_FOLDER}`;
+
+  // ── STATE ──
+  let allQuestions  = [];
+  let examQuestions = [];
+  let currentIndex  = 0;
+  let score         = 0;
+  let answered      = false;
+  let currentFile   = '';
+  let currentSubject = '';
+  let deferredPrompt = null;
+
+  // ══════════════════════════════════
+  // GITHUB BROWSER
+  // ══════════════════════════════════
+  async function loadSubjects() {
+    const el = document.getElementById('browserContent');
+    const sub = document.getElementById('repoSubLabel');
+    try {
+      const res = await fetch(API_BASE);
+      if (!res.ok) throw new Error('Cannot reach repo');
+      const items = await res.json();
+      const folders = items.filter(i => i.type === 'dir');
+      if (folders.length === 0) {
+        el.innerHTML = `<div class="error-state"><div class="err-icon">📭</div><p>No subject folders found inside <strong>csv/</strong> in your repo.<br/>Add folders like <strong>csv/software-design/</strong> to get started.</p></div>`;
+        sub.textContent = 'No subjects found yet.';
+        return;
+      }
+      sub.textContent = `${folders.length} subject${folders.length > 1 ? 's' : ''} found`;
+      let html = `<div class="section-label">📂 Subjects</div><div class="subject-list">`;
+      for (const f of folders) {
+        html += `<div class="subject-item" onclick="loadFiles('${f.name}')">
+          <div>
+            <div class="subj-name">${formatName(f.name)}</div>
+            <div class="subj-count">Tap to browse reviewers</div>
+          </div>
+          <span class="subj-arrow">›</span>
+        </div>`;
+      }
+      html += `</div>`;
+      el.innerHTML = html;
+    } catch(e) {
+      el.innerHTML = `<div class="error-state">
+        <div class="err-icon">😕</div>
+        <p>Couldn't load your reviewers.<br/>Make sure your repo is <strong>public</strong> and has a <strong>csv/</strong> folder.<br/><small style="color:#9ca3af">${e.message}</small></p>
+        <button class="retry-btn" onclick="loadSubjects()">Try Again</button>
+      </div>`;
+      sub.textContent = 'Could not connect.';
+    }
+  }
+
+  async function loadFiles(folder) {
+    currentSubject = folder;
+    const el = document.getElementById('browserContent');
+    const sub = document.getElementById('repoSubLabel');
+    el.innerHTML = `<div class="loading-state"><div class="spinner"></div><p>Loading ${formatName(folder)}…</p></div>`;
+    try {
+      const res = await fetch(`${API_BASE}/${folder}`);
+      if (!res.ok) throw new Error('Folder not found');
+      const items = await res.json();
+      const files = items.filter(i => i.type === 'file' && i.name.endsWith('.csv'));
+      if (files.length === 0) {
+        el.innerHTML = `<button class="back-btn" onclick="loadSubjects()">← Back</button>
+          <div class="error-state"><div class="err-icon">📭</div><p>No CSV files found in <strong>${formatName(folder)}</strong>.</p></div>`;
+        return;
+      }
+      sub.textContent = `${formatName(folder)} — ${files.length} reviewer${files.length > 1 ? 's' : ''}`;
+      let html = `<button class="back-btn" onclick="loadSubjects()">← All Subjects</button>
+        <div class="section-label">📄 Reviewers</div>
+        <div class="file-list">`;
+      for (const f of files) {
+        const displayName = formatName(f.name.replace('.csv',''));
+        html += `<div class="file-item" onclick="selectFile('${folder}', '${f.name}', '${displayName}')">
+          <div class="file-icon">📋</div>
+          <div>
+            <div class="file-name">${displayName}</div>
+            <div class="file-sub">${f.name}</div>
+          </div>
+        </div>`;
+      }
+      html += `</div>`;
+      el.innerHTML = html;
+    } catch(e) {
+      el.innerHTML = `<button class="back-btn" onclick="loadSubjects()">← Back</button>
+        <div class="error-state"><div class="err-icon">😕</div><p>Couldn't load files.<br/><small>${e.message}</small></p></div>`;
+    }
+  }
+
+  async function selectFile(folder, filename, displayName) {
+    showScreen('screen-settings');
+    document.getElementById('sfName').textContent = displayName;
+    document.getElementById('sfCount').textContent = 'Loading…';
+    document.getElementById('csvErrorBox').classList.remove('show');
+
+    try {
+      const url = `${RAW_BASE}/${folder}/${filename}`;
+      const res = await fetch(url);
+      if (!res.ok) throw new Error('File not found');
+      const text = await res.text();
+      const parsed = parseCSV(text);
+
+      if (parsed.length === 0 || !isValidCSV(parsed)) {
+        document.getElementById('csvErrorBox').classList.add('show');
+        document.getElementById('sfCount').textContent = 'Invalid format';
+        allQuestions = [];
+        return;
+      }
+
+      allQuestions = parsed;
+      currentFile = displayName;
+      const max = allQuestions.length;
+      document.getElementById('sfCount').textContent = `${max} questions`;
+      document.getElementById('maxHint').textContent = `Max: ${max} available`;
+      let cnt = Math.min(10, max);
+      document.getElementById('qCount').textContent = cnt;
+    } catch(e) {
+      document.getElementById('csvErrorBox').classList.add('show');
+      document.getElementById('sfCount').textContent = 'Error loading file';
+      allQuestions = [];
+    }
+  }
+
+  // ══════════════════════════════════
+  // CSV PARSING
+  // ══════════════════════════════════
+  function parseCSV(text) {
+    const lines = text.trim().split('\n');
+    if (lines.length < 2) return [];
+    const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g,'').toLowerCase());
+    const rows = [];
+    for (let i = 1; i < lines.length; i++) {
+      const vals = smartSplit(lines[i]);
+      if (vals.length < 7) continue;
+      const obj = {};
+      headers.forEach((h, idx) => { obj[h] = (vals[idx]||'').trim().replace(/^"|"$/g,''); });
+      if (obj.question && obj.correct_answer) rows.push(obj);
+    }
+    return rows;
+  }
+
+  function isValidCSV(rows) {
+    const required = ['question','option_a','option_b','option_c','option_d','correct_answer','explanation'];
+    if (rows.length === 0) return false;
+    return required.every(k => k in rows[0]);
+  }
+
+  function smartSplit(line) {
+    const result = []; let cur = ''; let inQ = false;
+    for (let c of line) {
+      if (c === '"') { inQ = !inQ; }
+      else if (c === ',' && !inQ) { result.push(cur); cur = ''; }
+      else { cur += c; }
+    }
+    result.push(cur);
+    return result;
+  }
+
+  function formatName(str) {
+    return str.replace(/[-_]/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+  }
+
+  // ══════════════════════════════════
+  // SETTINGS
+  // ══════════════════════════════════
+  function changeCount(delta) {
+    let cur = parseInt(document.getElementById('qCount').textContent);
+    const max = allQuestions.length || 50;
+    cur = Math.max(5, Math.min(max, cur + delta));
+    document.getElementById('qCount').textContent = cur;
+  }
+
+  // ══════════════════════════════════
+  // EXAM
+  // ══════════════════════════════════
+  function startExam() {
+    if (!allQuestions.length) return;
+    const count = parseInt(document.getElementById('qCount').textContent);
+    const shuffle = document.getElementById('shuffleToggle').checked;
+    let pool = [...allQuestions];
+    if (shuffle) pool = pool.sort(() => Math.random() - 0.5);
+    examQuestions = pool.slice(0, count);
+    currentIndex = 0; score = 0;
+    showScreen('screen-exam');
+    renderQuestion();
+  }
+
+  function renderQuestion() {
+    answered = false;
+    const q = examQuestions[currentIndex];
+    const total = examQuestions.length;
+    const pct = (currentIndex / total) * 100;
+
+    document.getElementById('progressFill').style.width = pct + '%';
+    document.getElementById('progressLabel').textContent = `Question ${currentIndex+1} of ${total}`;
+    document.getElementById('scoreLabel').textContent = `Score: ${score}`;
+    document.getElementById('questionNum').textContent = `QUESTION ${currentIndex+1}`;
+    document.getElementById('questionText').textContent = q.question;
+
+    const opts = document.getElementById('optionsContainer');
+    opts.innerHTML = '';
+    ['A','B','C','D'].forEach((ltr, i) => {
+      const key = `option_${ltr.toLowerCase()}`;
+      if (!q[key]) return;
+      const btn = document.createElement('button');
+      btn.className = 'option-btn';
+      btn.innerHTML = `<span class="opt-letter">${ltr}</span><span>${q[key]}</span>`;
+      btn.onclick = () => selectAnswer(ltr, btn);
+      opts.appendChild(btn);
+    });
+
+    document.getElementById('feedbackArea').style.display = 'none';
+  }
+
+  function selectAnswer(letter, btn) {
+    if (answered) return;
+    answered = true;
+    const q = examQuestions[currentIndex];
+    const correct = q.correct_answer.trim().toUpperCase();
+    const isCorrect = letter === correct;
+    if (isCorrect) score++;
+
+    document.querySelectorAll('.option-btn').forEach(b => {
+      b.disabled = true;
+      if (b.querySelector('.opt-letter').textContent === correct) b.classList.add('correct');
+    });
+    if (!isCorrect) btn.classList.add('wrong');
+
+    const badge = document.getElementById('resultBadge');
+    if (isCorrect) {
+      badge.className = 'result-badge correct-badge';
+      badge.innerHTML = '✅ Correct! Well done!';
+    } else {
+      badge.className = 'result-badge wrong-badge';
+      badge.innerHTML = `❌ Wrong. Correct answer is <strong>${correct}</strong>.`;
+    }
+
+    document.getElementById('explanationText').textContent = q.explanation || 'No explanation provided.';
+    const isLast = currentIndex === examQuestions.length - 1;
+    document.getElementById('nextBtn').textContent = isLast ? 'See Results 🎉' : 'Next Question →';
+    document.getElementById('feedbackArea').style.display = 'block';
+    document.getElementById('scoreLabel').textContent = `Score: ${score}`;
+  }
+
+  function nextQuestion() {
+    currentIndex++;
+    if (currentIndex >= examQuestions.length) showResults();
+    else renderQuestion();
+  }
+
+  // ══════════════════════════════════
+  // RESULTS
+  // ══════════════════════════════════
+  function showResults() {
+    const total = examQuestions.length;
+    const pct = Math.round((score / total) * 100);
+    const wrong = total - score;
+    const passed = pct >= 75;
+
+    document.getElementById('scoreBig').textContent = score;
+    document.getElementById('scoreOf').textContent = 'of ' + total;
+    document.getElementById('statCorrect').textContent = score;
+    document.getElementById('statWrong').textContent = wrong;
+    document.getElementById('statPct').textContent = pct + '%';
+
+    const badge = document.getElementById('passBadge');
+    badge.className = passed ? 'pass-badge pass' : 'pass-badge fail';
+    badge.textContent = passed ? '🎉 Passed! Great job!' : '📚 Keep studying, you can do it!';
+
+    document.getElementById('scoreCircle').style.background =
+      `conic-gradient(var(--pink-500) ${pct*3.6}deg, var(--pink-100) ${pct*3.6}deg)`;
+
+    showScreen('screen-result');
+  }
+
+  function retryExam() { startExam(); }
+
+  // ══════════════════════════════════
+  // NAVIGATION
+  // ══════════════════════════════════
+  function goHome() {
+    showScreen('screen-home');
+    loadSubjects();
+  }
+
+  function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    window.scrollTo(0,0);
+    const homeBtn = document.getElementById('homeBtn');
+    homeBtn.classList.toggle('show', id !== 'screen-home');
+  }
+
+  // ══════════════════════════════════
+  // PWA
+  // ══════════════════════════════════
+  window.addEventListener('beforeinstallprompt', e => {
+    e.preventDefault(); deferredPrompt = e;
+    document.getElementById('installBanner').classList.add('show');
+  });
+  function installApp() {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.then(() => {
+      deferredPrompt = null;
+      document.getElementById('installBanner').classList.remove('show');
+    });
+  }
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('service-worker.js');
+
+  // ══════════════════════════════════
+  // INIT
+  // ══════════════════════════════════
+  loadSubjects();
+</script>
+</body>
+</html>
